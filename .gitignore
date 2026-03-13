@@ -1,0 +1,8 @@
+# Output zip files
+*.zip
+
+# Source directories (must be provided manually)
+midnight-indexer-*/
+midnight-ledger-*/
+midnight-node-*/
+.DS_Store
