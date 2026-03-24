@@ -1,8 +1,8 @@
 ARCH=linux-amd64
 TARGET=x86_64-unknown-linux-gnu
-INDEXER_VERSION=4.0.0-rc.5
-LEDGER_VERSION=8.0.2
-NODE_VERSION=0.22.0-rc.10
+INDEXER_VERSION=4.0.0
+LEDGER_VERSION=8.0.3
+NODE_VERSION=0.22.2
 
 # TODO this is not working yet
 # Requires: cargo install cross + Docker running for cross compilation

@@ -1,8 +1,8 @@
 # ARCH=linux-amd64
 ARCH=macos-arm64
-INDEXER_VERSION=4.0.0-rc.5
-LEDGER_VERSION=8.0.2
-NODE_VERSION=0.22.0-rc.10
+INDEXER_VERSION=4.0.0
+LEDGER_VERSION=8.0.3
+NODE_VERSION=0.22.2
 
 # download binaries from releases
 # https://github.com/midnightntwrk/midnight-indexer/releases

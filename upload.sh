@@ -1,8 +1,8 @@
 RELEASE_TAG=0.3.120
 REPO=effectstream/binaries
-INDEXER_VERSION=4.0.0-rc.5
-LEDGER_VERSION=8.0.2
-NODE_VERSION=0.22.0-rc.10
+INDEXER_VERSION=4.0.0
+LEDGER_VERSION=8.0.3
+NODE_VERSION=0.22.2
 
 # Usage: ./upload.sh <macos-arm64|linux-amd64>
 # Prerequisites:
