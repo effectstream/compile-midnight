@@ -1,8 +1,7 @@
+#!/bin/bash
 RELEASE_TAG=0.3.120
 REPO=effectstream/binaries
-INDEXER_VERSION=4.0.0
-LEDGER_VERSION=8.0.3
-NODE_VERSION=0.22.2
+source "$(dirname "$0")/versions.sh"
 
 # Usage: ./upload.sh <macos-arm64|linux-amd64>
 # Prerequisites:
