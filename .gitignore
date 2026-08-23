@@ -5,4 +5,11 @@
 midnight-indexer-*/
 midnight-ledger-*/
 midnight-node-*/
+.upstream/
+.stage/
+.stage-*/
+.build-*.lock/
+*.overlap-quarantine-*
+validation-*.log
+SHA256SUMS-*
 .DS_Store

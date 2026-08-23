@@ -1,0 +1,9 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index e4ec6c7..f0a6f89 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -3323,3 +3323,3 @@ dependencies = [
+ name = "midnight-proof-server"
+-version = "9.0.0-rc.4"
++version = "9.0.0-rc.5"
+ dependencies = [
