@@ -4,7 +4,13 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 ARCH=macos-arm64
 source "$SCRIPT_DIR/versions.sh"
+source "$SCRIPT_DIR/source_controls.sh"
 cd "$SCRIPT_DIR"
+
+if [[ "${REUSE_COMPLETED_COMPONENTS:-0}" != 0 ]]; then
+  echo "REUSE_COMPLETED_COMPONENTS is unsupported: native archives must be rebuilt from the verified pinned sources." >&2
+  exit 1
+fi
 
 BUILD_LOCK_DIR="$SCRIPT_DIR/.build-${ARCH}.lock"
 if ! mkdir "$BUILD_LOCK_DIR" 2>/dev/null; then
@@ -20,39 +26,15 @@ INDEXER_DIR="midnight-indexer-${INDEXER_VERSION}"
 PROOF_SERVER_DIR="midnight-ledger-proof-server-${PROOF_SERVER_VERSION}"
 NODE_DIR="midnight-node-node-${NODE_VERSION}"
 
-assert_source() {
-  local source_dir=$1
-  local expected_commit=$2
-
-  if [[ ! -d "$source_dir/.git" ]]; then
-    echo "Missing source checkout: $source_dir. Run ./fetch_sources.sh first." >&2
-    exit 1
-  fi
-
-  local actual_commit
-  actual_commit=$(git -C "$source_dir" rev-parse HEAD)
-  if [[ "$actual_commit" != "$expected_commit" ]]; then
-    echo "Wrong source commit for $source_dir: expected $expected_commit, got $actual_commit" >&2
-    exit 1
-  fi
-}
-
-assert_source "$INDEXER_DIR" "$INDEXER_COMMIT"
-assert_source "$PROOF_SERVER_DIR" "$PROOF_SERVER_COMMIT"
-assert_source "$NODE_DIR" "$NODE_COMMIT"
-
 PROOF_LOCK_PATCH="$SCRIPT_DIR/patches/proof-server-rc5-cargo-lock.patch"
+assert_pinned_source "$INDEXER_DIR" "$INDEXER_COMMIT"
+assert_pinned_source "$PROOF_SERVER_DIR" "$PROOF_SERVER_COMMIT" "$PROOF_LOCK_PATCH"
+assert_pinned_source "$NODE_DIR" "$NODE_COMMIT"
+
 if grep -q 'version = "9.0.0-rc.4"' "$PROOF_SERVER_DIR/Cargo.lock"; then
   git -C "$PROOF_SERVER_DIR" apply "$PROOF_LOCK_PATCH"
 fi
-if ! git -C "$PROOF_SERVER_DIR" diff --quiet -- . ':(exclude)Cargo.lock'; then
-  echo "Unexpected authored-source changes in $PROOF_SERVER_DIR" >&2
-  exit 1
-fi
-if ! git -C "$PROOF_SERVER_DIR" diff -U1 -- Cargo.lock | cmp -s - "$PROOF_LOCK_PATCH"; then
-  echo "Proof-server Cargo.lock differs from the recorded one-line normalization." >&2
-  exit 1
-fi
+assert_recorded_patch_present "$PROOF_SERVER_DIR" "$PROOF_SERVER_COMMIT" "$PROOF_LOCK_PATCH"
 
 INDEXER_EXECUTABLE="indexer-standalone-${ARCH}-v${INDEXER_VERSION}"
 INDEXER_ARCHIVE="indexer-standalone-${ARCH}-v${INDEXER_VERSION}.zip"
@@ -61,28 +43,21 @@ PROOF_ARCHIVE="midnight-proof-server-${ARCH}-${PROOF_SERVER_VERSION}.zip"
 NODE_EXECUTABLE="midnight-node-${ARCH}-${NODE_VERSION}"
 NODE_ARCHIVE="midnight-node-${ARCH}-${NODE_VERSION}.zip"
 
-if [[ "${REUSE_COMPLETED_COMPONENTS:-0}" != 1 ]]; then
-  rm -f "$INDEXER_ARCHIVE" "$PROOF_ARCHIVE"
-fi
-rm -f "$NODE_ARCHIVE" "SHA256SUMS-${ARCH}"
+rm -f "$INDEXER_ARCHIVE" "$PROOF_ARCHIVE" "$NODE_ARCHIVE" "SHA256SUMS-${ARCH}"
 
-if [[ ! -f "$INDEXER_ARCHIVE" ]]; then
-  (
-    cd "$INDEXER_DIR"
-    cargo build --locked --release --features standalone --package indexer-standalone
-    install -m 0755 target/release/indexer-standalone "target/release/${INDEXER_EXECUTABLE}"
-    zip -j "../${INDEXER_ARCHIVE}" "target/release/${INDEXER_EXECUTABLE}"
-  )
-fi
+(
+  cd "$INDEXER_DIR"
+  cargo build --locked --release --features standalone --package indexer-standalone
+  install -m 0755 target/release/indexer-standalone "target/release/${INDEXER_EXECUTABLE}"
+  zip -j "../${INDEXER_ARCHIVE}" "target/release/${INDEXER_EXECUTABLE}"
+)
 
-if [[ ! -f "$PROOF_ARCHIVE" ]]; then
-  (
-    cd "$PROOF_SERVER_DIR"
-    cargo +1.95.0 build --locked --release --package midnight-proof-server
-    install -m 0755 target/release/midnight-proof-server "target/release/${PROOF_EXECUTABLE}"
-    zip -j "../${PROOF_ARCHIVE}" "target/release/${PROOF_EXECUTABLE}"
-  )
-fi
+(
+  cd "$PROOF_SERVER_DIR"
+  cargo +1.95.0 build --locked --release --package midnight-proof-server
+  install -m 0755 target/release/midnight-proof-server "target/release/${PROOF_EXECUTABLE}"
+  zip -j "../${PROOF_ARCHIVE}" "target/release/${PROOF_EXECUTABLE}"
+)
 
 (
   cd "$NODE_DIR"

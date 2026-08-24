@@ -27,6 +27,13 @@ applies only `patches/proof-server-rc5-cargo-lock.patch` (SHA-256
 `cefb087dad02326e6ba144af3f8c3fa0aa1e30adc1647918b52c2822b7c5174f`)
 to normalize that lock entry from rc.4 to rc.5 while retaining `--locked`.
 
+The reproduction workflow requires clean staged, unstaged, and untracked
+non-ignored state for indexer and node. Proof-server permits only that exact
+unstaged Cargo.lock patch and requires clean staged/untracked state. Native
+archive reuse is disabled: a reproduction rebuilds every macOS component from
+those checked inputs. These control changes do not rebuild or alter the six
+already published assets recorded below.
+
 ## Assets
 
 | Component | Platform / arch | Source tag/ref and commit | Published input | Archive (bytes) | Extracted executable | SHA-256 | Final release URL | State |

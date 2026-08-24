@@ -20,6 +20,9 @@ Fetch the exact source refs and verify their commits:
 
 The source directories and generated archives are intentionally gitignored. Exact
 refs, commits, image digests, and the release target live in `versions.sh`.
+Source verification fails closed on staged, unstaged, and untracked non-ignored
+files. The proof-server checkout alone may contain the exact recorded Cargo.lock
+normalization in `patches/proof-server-rc5-cargo-lock.patch`.
 
 ## Usage
 
@@ -29,9 +32,9 @@ refs, commits, image digests, and the release target live in `versions.sh`.
 ./script_mac.sh
 ```
 
-The platform scripts use lock directories and refuse concurrent writers. After
-an interrupted component build, already completed indexer/proof archives can be
-preserved while rebuilding node with `REUSE_COMPLETED_COMPONENTS=1`.
+The platform scripts use lock directories and refuse concurrent writers. Every
+macOS run rebuilds all three archives from the verified pinned source; reuse of
+pre-existing archives is intentionally unsupported.
 
 ### 2. Package official Linux binaries (linux-amd64)
 

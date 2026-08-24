@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 source "$SCRIPT_DIR/versions.sh"
+source "$SCRIPT_DIR/source_controls.sh"
 cd "$SCRIPT_DIR"
 
 clone_tag() {
@@ -15,12 +16,7 @@ clone_tag() {
     git clone --branch "$ref" --depth 1 "$repo" "$dest"
   fi
 
-  local actual_commit
-  actual_commit=$(git -C "$dest" rev-parse HEAD)
-  if [[ "$actual_commit" != "$commit" ]]; then
-    echo "Wrong source commit for $dest: expected $commit, got $actual_commit" >&2
-    exit 1
-  fi
+  assert_pinned_source "$dest" "$commit"
 }
 
 clone_commit() {
@@ -36,13 +32,10 @@ clone_commit() {
     git -C "$dest" checkout --detach FETCH_HEAD
   fi
 
-  local actual_commit
-  actual_commit=$(git -C "$dest" rev-parse HEAD)
-  if [[ "$actual_commit" != "$commit" ]]; then
-    echo "Wrong source commit for $dest: expected $commit, got $actual_commit" >&2
-    exit 1
-  fi
+  assert_pinned_source "$dest" "$commit" "$PROOF_LOCK_PATCH"
 }
+
+PROOF_LOCK_PATCH="$SCRIPT_DIR/patches/proof-server-rc5-cargo-lock.patch"
 
 clone_tag https://github.com/midnightntwrk/midnight-indexer.git "$INDEXER_REF" "$INDEXER_COMMIT" "midnight-indexer-${INDEXER_VERSION}"
 clone_tag https://github.com/midnightntwrk/midnight-ledger.git "$LEDGER_REF" "$LEDGER_COMMIT" "midnight-ledger-ledger-${LEDGER_VERSION}"
